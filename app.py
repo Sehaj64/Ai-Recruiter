@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
+import re
 from src.utils import (
     read_docx,
     read_pdf,
@@ -16,8 +17,17 @@ from src.utils import (
 # --- Page Configuration ---
 st.set_page_config(layout="wide", page_title="AI Recruiter")
 
+# --- API Key Handling (AWS & Local Support) ---
+# We prioritize Environment Variables (AWS) then Streamlit Secrets (Local)
+gemini_api_key = os.environ.get("GOOGLE_API_KEY") 
+if not gemini_api_key:
+    try:
+        gemini_api_key = st.secrets["GEMINI_API_KEY"]
+    except:
+        gemini_api_key = None
+
 # --- Main UI ---
-st.title("🚀 AI Recruiter")
+st.title("?? AI Recruiter Pro")
 st.markdown("An intelligent system for local resume analysis with a fast, API-powered chatbot.")
 
 # --- Session State Initialization ---
@@ -35,10 +45,14 @@ with st.sidebar:
 
 # --- Core Application Logic ---
 if analyze_button and job_description_file and resume_files:
+    if not gemini_api_key:
+        st.error("API Key missing! Please set GOOGLE_API_KEY in AWS Environment Variables.")
+        st.stop()
+        
     st.session_state.chat_history = []
     st.session_state.analysis_done = True
-    
-    with st.spinner("🚀 Analyzing documents locally..."):
+
+    with st.spinner("?? Analyzing documents..."):
         # Read job description
         jd_content = read_docx(job_description_file) if "wordprocessingml" in job_description_file.type else read_pdf(job_description_file)
         job_skills = refined_extract_skills(jd_content, skill_patterns)
@@ -48,7 +62,7 @@ if analyze_button and job_description_file and resume_files:
 
         # Process each resume
         for resume_file in resume_files:
-            content = read_docx(resume_file) if "wordprocessingml" in resume_file.type else read_pdf(resume_file)
+            content = read_docx(resume_file) if "wordprocessingml" in resume_file.type else read_pdf(resume_file)     
             if content:
                 candidate_details = {
                     "name": resume_file.name,
@@ -59,18 +73,18 @@ if analyze_button and job_description_file and resume_files:
                 }
                 candidate_data.append(candidate_details)
                 full_qa_context += f"\n\n--- RESUME: {resume_file.name} ---\n{content}"
-        
+
         st.session_state.qa_context = full_qa_context
         st.session_state.ranked_candidates = rank_candidates(job_skills, candidate_data)
 
 # --- Display Results ---
 if st.session_state.analysis_done:
     st.header("Analysis Results")
-    
-    # Display dataframe with specified column order
+
+    # Display dataframe
     df = pd.DataFrame(st.session_state.ranked_candidates)
-    display_columns = ['name', 'skills', 'match_percentage', 'match_score', 'experience', 'projects', 'education']
-    st.dataframe(df[display_columns], width='stretch')
+    display_columns = ['name', 'skills', 'match_percentage', 'match_score', 'experience', 'projects', 'education']    
+    st.dataframe(df[display_columns], use_container_width=True)
 
     st.subheader("Detailed Candidate Profiles")
     for candidate in st.session_state.ranked_candidates:
@@ -87,22 +101,12 @@ if st.session_state.analysis_done:
     st.markdown("---")
     st.header("Chat about the Documents")
 
-    # API Key Handling
-    try:
-        gemini_api_key = st.secrets["GEMINI_API_KEY"]
-        if not gemini_api_key or gemini_api_key == "YOUR_TOKEN_HERE":
-            st.error("Gemini API key is not configured. Please add it to your Streamlit secrets.")
-            st.stop()
-    except KeyError:
-        st.error("Gemini API key is not configured. Please add it to your Streamlit secrets.")
-        st.stop()
-
     # Chat History and Input
     for msg in st.session_state.chat_history:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-    if user_question := st.chat_input("Ask a question..."):
+    if user_question := st.chat_input("Ask a question about the candidates..."):
         st.session_state.chat_history.append({"role": "user", "content": user_question})
         with st.chat_message("user"):
             st.markdown(user_question)
