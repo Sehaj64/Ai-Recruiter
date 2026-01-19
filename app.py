@@ -27,7 +27,7 @@ if not gemini_api_key:
         gemini_api_key = None
 
 # --- Main UI ---
-st.title("?? AI Recruiter Pro")
+st.title("?? AI Recruiter")
 st.markdown("An intelligent system for local resume analysis with a fast, API-powered chatbot.")
 
 # --- Session State Initialization ---
