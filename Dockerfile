@@ -1,19 +1,21 @@
-FROM python:3.10-slim
+FROM python:3.11.5-slim
 
+# Set the working directory
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# Install system dependencies (needed for Spacy/AI tools)
+RUN apt-get update && apt-get install -y build-essential curl && rm -rf /var/lib/apt/lists/*
 
+# Copy requirements and install packages
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 RUN python -m spacy download en_core_web_sm
 
+# Copy all your project code
 COPY . .
 
-EXPOSE 8501
+# Expose the port your application listens on
+EXPOSE 5000
 
-# Using absolute path to ensure AWS finds it
-CMD ["/usr/local/bin/python", "-m", "streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# Run the main application directly
+CMD ["streamlit", "run", "app.py", "--server.port=5000", "--server.address=0.0.0.0"]
