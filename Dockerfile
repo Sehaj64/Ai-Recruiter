@@ -8,20 +8,23 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first
+# Copy requirements
 COPY requirements.txt .
 
-# Install dependencies GLOBALLY (Fixes the PATH issue)
+# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Download Spacy model
 RUN python -m spacy download en_core_web_sm
 
-# Copy the rest of the app
+# Copy app code
 COPY . .
 
-# Expose the port
+# Expose port
 EXPOSE 8501
 
-# Run the app
-CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+# Healthcheck
+HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
+
+# COMMAND FIX: Run streamlit via python module to avoid PATH issues
+CMD ["python", "-m", "streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
