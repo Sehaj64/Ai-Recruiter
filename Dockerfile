@@ -15,7 +15,7 @@ RUN python -m spacy download en_core_web_sm
 COPY . .
 
 # Expose the port your application listens on
-EXPOSE 5000
+EXPOSE 8080
 
 # Run the main application with cloud-optimized flags
-CMD ["streamlit", "run", "app.py", "--server.port=5000", "--server.address=0.0.0.0", "--server.headless=true", "--browser.gatherUsageStats=false", "--server.enableCORS=false", "--server.enableXsrfProtection=false"]
+CMD ["streamlit", "run", "app.py", "--server.port=8080", "--server.address=0.0.0.0", "--server.headless=true", "--browser.gatherUsageStats=false", "--server.enableCORS=false", "--server.enableXsrfProtection=false"]
