@@ -17,5 +17,5 @@ COPY . .
 # Expose the port your application listens on
 EXPOSE 5000
 
-# Run the main application directly
-CMD ["streamlit", "run", "app.py", "--server.port=5000", "--server.address=0.0.0.0"]
+# Run the main application with cloud-optimized flags
+CMD ["streamlit", "run", "app.py", "--server.port=5000", "--server.address=0.0.0.0", "--server.headless=true", "--browser.gatherUsageStats=false", "--server.enableCORS=false", "--server.enableXsrfProtection=false"]
