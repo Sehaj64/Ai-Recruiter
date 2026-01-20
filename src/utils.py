@@ -19,11 +19,14 @@ def load_spacy_model() -> spacy.language.Language:
     """
     Loads the spaCy 'en_core_web_sm' model.
     Uses Streamlit's caching to prevent reloading on every run.
-
-    Returns:
-        spacy.language.Language: The loaded spaCy model.
     """
-    return spacy.load("en_core_web_sm")
+    try:
+        return spacy.load("en_core_web_sm")
+    except OSError:
+        print("Model 'en_core_web_sm' not found. Downloading...")
+        from spacy.cli import download
+        download("en_core_web_sm")
+        return spacy.load("en_core_web_sm")
 
 nlp = load_spacy_model()
 
