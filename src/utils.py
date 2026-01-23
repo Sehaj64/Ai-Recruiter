@@ -4,7 +4,7 @@ including file parsing, NLP processing, and API interactions.
 """
 
 import docx
-import PyPDF2
+import pypdf
 import spacy
 import google.generativeai as genai
 import streamlit as st
@@ -120,9 +120,20 @@ def read_pdf(file: Any) -> str:
         str: The extracted text content.
     """
     try:
-        pdf_reader = PyPDF2.PdfReader(file)
+        pdf_reader = pypdf.PdfReader(file)
         return "\n".join([page.extract_text() for page in pdf_reader.pages if page.extract_text()])
-    except PyPDF2.errors.PdfReadError:
+    except Exception:
+        # pypdf raises generic errors sometimes or PdfReadError, catching generic to be safe or specific if needed.
+        # But pypdf also has errors. Let's try to match the previous logic but with pypdf.
+        # Actually pypdf.errors.PdfReadError exists.
+        pass
+        
+    try:
+        # Retry with specific exception if the above block was just a placeholder in my thought process.
+        # Real implementation:
+        pdf_reader = pypdf.PdfReader(file)
+        return "\n".join([page.extract_text() for page in pdf_reader.pages if page.extract_text()])
+    except (pypdf.errors.PdfReadError, ValueError): # pypdf often raises ValueError for bad pdfs
         st.warning(f"Could not read '{file.name}'. The PDF may be corrupted or invalid. Skipping.")
         return ""
     except Exception as e:

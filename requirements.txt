@@ -1,7 +1,7 @@
 streamlit
 spacy
 python-docx
-pypdf2
+pypdf
 pandas
 google-generativeai
 numpy<2.0.0
