@@ -18,8 +18,14 @@ from typing import List, Dict, Any, Union
 def load_spacy_model() -> spacy.language.Language:
     """
     Loads the spaCy 'en_core_web_sm' model.
-    Uses Streamlit's caching to prevent reloading on every run.
+    Prioritizes importing as a module for Streamlit Cloud compatibility.
     """
+    try:
+        import en_core_web_sm
+        return en_core_web_sm.load()
+    except ImportError:
+        pass
+    
     try:
         return spacy.load("en_core_web_sm")
     except OSError:
